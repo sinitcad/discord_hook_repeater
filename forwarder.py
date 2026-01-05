@@ -130,7 +130,8 @@ class Forwarder(discord.Client):
             if lname in config["names"]:
                 logger.info(f"Match found in {client_name} list: {lname}")
                 if config["webhook"]:
-                    await send_to_webhook(config["webhook"], message)
+                    for url in config["webhook"]:
+                        await send_to_webhook(url, message)
                     match_found = True
                 else:
                     logger.warning(f"{client_name} match found but no webhook URL configured")
@@ -174,8 +175,11 @@ def load_clients_from_env() -> Dict[str, dict]:
                 list_path = list_path_raw
                 
             names = load_names(list_path)
+            # Split webhooks by comma and strip whitespace
+            webhooks = [url.strip() for url in value.split(',') if url.strip()]
+            
             clients[client_name] = {
-                "webhook": value.strip(),
+                "webhook": webhooks,
                 "names": names
             }
             
